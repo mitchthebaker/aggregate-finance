@@ -1,6 +1,6 @@
 # finance-aggregator
 
-## Setup virtualenv and install dependencies
+### Setup virtualenv and install dependencies
 
 ```
 pip3 install virtualenv
@@ -9,7 +9,7 @@ source .venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-## Run development server
+### Run development server
 
 ```
 python3 src/server.py
