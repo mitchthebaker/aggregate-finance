@@ -1,7 +1,10 @@
 import json
 from flask import Flask, jsonify, request
 
+import config
+
 server = Flask(__name__)
+server.debug = config.DEBUG
 
 @server.route('/', methods=['GET'])
 def get_root():
@@ -9,4 +12,4 @@ def get_root():
   return jsonify(arr)
 
 if __name__ == '__main__':
-  server.run(port=3101)
+  server.run(host=config.HOST, port=config.PORT)
