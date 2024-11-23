@@ -1,4 +1,4 @@
-# finance-aggregator
+## finance-aggregator
 
 ### Setup virtualenv and install dependencies
 
