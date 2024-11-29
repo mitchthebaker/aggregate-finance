@@ -18,7 +18,10 @@ python3 src/server.py
 ```
 
 new setup
-### Run via docker compose
+### Build/run via docker compose
 ```
 docker compose up --build
+
+# or simply
+docker compose up
 ```

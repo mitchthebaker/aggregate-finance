@@ -1,6 +1,7 @@
 from plaid.api import plaid_api
 from plaid.model.sandbox_public_token_create_request import SandboxPublicTokenCreateRequest
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
 from flask import Blueprint
 from extensions import cache
@@ -37,4 +38,43 @@ def set_access_token():
 
   cache.set('plaid_access_token', exchange_response.access_token)
   json_string = json.dumps(exchange_response.to_dict(), default=str)
+  return json_string
+
+@plaid_blueprint.route('/set_transaction_sync', methods=['POST'])
+def set_transaction_sync():
+  #cursor = cache.get('cursor')
+  cursor = ''
+
+  # New transaction updates since "cursor"
+  added = []
+  modified = []
+  removed = [] # Removed transaction ids
+  has_more = True
+
+  # Iterate through each page of new transaction updates for item
+  while has_more:
+    request = TransactionsSyncRequest(
+      access_token=cache.get('plaid_access_token'),
+      cursor=cursor,
+    )
+    response = client.transactions_sync(request)
+
+    # Add this page of results
+    added.extend(response['added'])
+    modified.extend(response['modified'])
+    removed.extend(response['removed'])
+
+    has_more = response['has_more']
+
+    # Update cursor to the next cursor
+    cursor = response['next_cursor']
+
+  pages = {
+    'cursor': cursor,
+    'added': added,
+    'modified': modified,
+    'removed': removed,
+  }
+  cache.set('pages', pages)
+  json_string = json.dumps(response.to_dict(), default=str)
   return json_string
