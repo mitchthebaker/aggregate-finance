@@ -3,8 +3,8 @@ from plaid.model.sandbox_public_token_create_request import SandboxPublicTokenCr
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
-from flask import Blueprint
-from extensions import cache
+from flask import Blueprint, request
+from cache import cache
 
 import plaid
 import json
@@ -22,13 +22,43 @@ configuration = plaid.Configuration(
 api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
-@plaid_blueprint.route('/set_access_token', methods=['POST'])
+@plaid_blueprint.route('/access_token/<institution_id>', methods=['POST'])
 # add uri parameter for custom institution id, initial products
-def set_access_token():
-  FIRST_PLATYPUS_BANK = 'ins_109508'
+def access_token(institution_id):
+  '''Retrieve a new access token from the Plaid API
+    ---
+    parameters:
+      - name: institution_id
+        description: The ID of the institution the Item will be associated with
+        in: path
+        type: string
+        required: true
+      - name: initial_products
+        description: The products to initially pull for the Item. May be any products that the specified institution_id  supports.
+        in: body
+        items:
+          type: string
+        type: array
+        required: true
+    responses:
+      200:
+        description: JSON payload with access_token, item_id, and request_id
+      400:
+        description: initial_products is required and must be a non-empty list
+  '''
+  body = request.get_json()
+  initial_products = body.get('initial_products')
+  if not initial_products or not isinstance(initial_products, list):
+    return jsonify({'error': 'initial_products is required and must be a non-empty list'}), 400
+  
+  try:
+    products_list = [Products(product) for product in initial_products]
+  except Exception as e:
+    return jsonify({'error': f'Error creating Products objects: {str(e)}'}), 400
+
   pt_request = SandboxPublicTokenCreateRequest(
-    institution_id = FIRST_PLATYPUS_BANK,
-    initial_products = [Products('transactions')]
+    institution_id = institution_id,
+    initial_products = products_list
   )
   pt_response = client.sandbox_public_token_create(pt_request)
   public_token = pt_response["public_token"]
@@ -42,8 +72,10 @@ def set_access_token():
 
 @plaid_blueprint.route('/set_transaction_sync', methods=['POST'])
 def set_transaction_sync():
-  #cursor = cache.get('cursor')
-  cursor = ''
+  if cache.get('cursor') is None:
+    cursor = ''
+  else:
+    cursor = cache.get('cursor')
 
   # New transaction updates since "cursor"
   added = []

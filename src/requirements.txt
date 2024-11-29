@@ -4,3 +4,4 @@ python-dotenv==1.0.1
 flasgger==0.9.7b2
 Flask-Caching==2.3.0
 redis==5.2.0
+Flask-PyMongo==2.3.0

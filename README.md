@@ -1,7 +1,7 @@
 ## finance-aggregator
 
 
-old setup prior to trying redis for plaid access key cache
+__old setup prior to configuring project with docker__
 ### Setup virtualenv and install dependencies
 
 ```
@@ -17,11 +17,18 @@ pip3 install -r requirements.txt
 python3 src/server.py
 ```
 
-new setup
+__new setup__
 ### Build/run via docker compose
 ```
+# build containers
 docker compose up --build
 
-# or simply
+# simply run if containers are already built
 docker compose up
+```
+
+### Inspect mongodb volume
+```
+docker volume ls
+docker volume inspect mongo_data
 ```
