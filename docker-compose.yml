@@ -1,0 +1,20 @@
+services:
+  flask-app:
+    image: python:3.13
+    container_name: flask_app
+    build:
+      context: ./src
+    env_file:
+      - ./src/.env
+    depends_on:
+      - redis
+    ports:
+      - "3101:3101"
+    volumes:
+      - ./src/:/opt/app
+
+  redis: 
+    image: redis:7.2
+    container_name: redis_server
+    ports:
+      - "6379:6379"
