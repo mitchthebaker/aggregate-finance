@@ -1,7 +1,6 @@
 ## finance-aggregator
 
-
-__old setup prior to configuring project with docker__
+*old setup prior to configuring project with docker*
 ### Setup virtualenv and install dependencies
 
 ```
@@ -17,7 +16,7 @@ pip3 install -r requirements.txt
 python3 src/server.py
 ```
 
-__new setup__
+*new setup*
 ### Build/run via docker compose
 ```
 # build containers

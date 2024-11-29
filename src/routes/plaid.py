@@ -70,8 +70,8 @@ def access_token(institution_id):
   json_string = json.dumps(exchange_response.to_dict(), default=str)
   return json_string
 
-@plaid_blueprint.route('/set_transaction_sync', methods=['POST'])
-def set_transaction_sync():
+@plaid_blueprint.route('/transaction_sync', methods=['POST'])
+def transaction_sync():
   if cache.get('cursor') is None:
     cursor = ''
   else:
@@ -86,8 +86,12 @@ def set_transaction_sync():
   # Iterate through each page of new transaction updates for item
   while has_more:
     request = TransactionsSyncRequest(
-      access_token=cache.get('plaid_access_token'),
-      cursor=cursor,
+      access_token = cache.get('plaid_access_token'),
+      cursor = cursor,
+      count = 5,
+      options = {
+        'days_requested': 60
+      }
     )
     response = client.transactions_sync(request)
 
