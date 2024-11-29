@@ -1,5 +1,7 @@
 ## finance-aggregator
 
+
+old setup prior to trying redis for plaid access key cache
 ### Setup virtualenv and install dependencies
 
 ```
@@ -13,4 +15,10 @@ pip3 install -r requirements.txt
 
 ```
 python3 src/server.py
+```
+
+new setup
+### Run via docker compose
+```
+docker compose up --build
 ```
