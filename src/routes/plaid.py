@@ -5,6 +5,8 @@ from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
 from flask import Blueprint, request
 from cache import cache
+from database import mongo
+from database.utils import convert_arbitrary_type_to_dict
 
 import plaid
 import json
@@ -72,6 +74,7 @@ def access_token(institution_id):
 
 @plaid_blueprint.route('/transaction_sync', methods=['POST'])
 def transaction_sync():
+  #cursor = ''
   if cache.get('cursor') is None:
     cursor = ''
   else:
@@ -88,7 +91,7 @@ def transaction_sync():
     request = TransactionsSyncRequest(
       access_token = cache.get('plaid_access_token'),
       cursor = cursor,
-      count = 5,
+      count = 100,
       options = {
         'days_requested': 60
       }
@@ -105,12 +108,10 @@ def transaction_sync():
     # Update cursor to the next cursor
     cursor = response['next_cursor']
 
-  pages = {
-    'cursor': cursor,
-    'added': added,
-    'modified': modified,
-    'removed': removed,
-  }
-  cache.set('pages', pages)
+  # Add item into mongodb collection
+  transactions = convert_arbitrary_type_to_dict(added)
+  mongo.db.transactions.insert_many(transactions)
+
+  cache.set('cursor', cursor, timeout = 5)
   json_string = json.dumps(response.to_dict(), default=str)
   return json_string
