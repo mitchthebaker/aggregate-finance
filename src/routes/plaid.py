@@ -3,7 +3,7 @@ from plaid.model.sandbox_public_token_create_request import SandboxPublicTokenCr
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 from cache import cache
 from database import mongo
 from database.utils import convert_arbitrary_type_to_dict
@@ -15,8 +15,8 @@ import config
 plaid_blueprint = Blueprint('plaid', __name__)
 
 configuration = plaid.Configuration(
-  host=plaid.Environment.Sandbox,
-  api_key={
+  host = plaid.Environment.Sandbox,
+  api_key = {
     'clientId': config.PLAID_CLIENT_ID,
     'secret': config.PLAID_SECRET
   }
@@ -25,7 +25,6 @@ api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
 @plaid_blueprint.route('/access_token/<institution_id>', methods=['POST'])
-# add uri parameter for custom institution id, initial products
 def access_token(institution_id):
   '''Retrieve a new access token from the Plaid API
     ---
@@ -51,12 +50,14 @@ def access_token(institution_id):
   body = request.get_json()
   initial_products = body.get('initial_products')
   if not initial_products or not isinstance(initial_products, list):
-    return jsonify({'error': 'initial_products is required and must be a non-empty list'}), 400
+    json_string = { 'error': 'initial_products is required and must be a non-empty list' }
+    return Response(json_string, status = 400, content_type = 'application/json')
   
   try:
     products_list = [Products(product) for product in initial_products]
   except Exception as e:
-    return jsonify({'error': f'Error creating Products objects: {str(e)}'}), 400
+    json_string = { 'error': f'Error creating Products objects: {str(e)}' }
+    return Response(json_string, status = 400, content_type = 'application/json')
 
   pt_request = SandboxPublicTokenCreateRequest(
     institution_id = institution_id,
@@ -65,16 +66,18 @@ def access_token(institution_id):
   pt_response = client.sandbox_public_token_create(pt_request)
   public_token = pt_response["public_token"]
 
-  exchange_request = ItemPublicTokenExchangeRequest(public_token=public_token)
+  exchange_request = ItemPublicTokenExchangeRequest(public_token = public_token)
   exchange_response = client.item_public_token_exchange(exchange_request)
 
   cache.set('plaid_access_token', exchange_response.access_token)
-  json_string = json.dumps(exchange_response.to_dict(), default=str)
-  return json_string
+  json_string = json.dumps(exchange_response.to_dict(), default = str)
+  return Response(json_string, status = 200, content_type = 'application/json')
 
 @plaid_blueprint.route('/transaction_sync', methods=['POST'])
 def transaction_sync():
-  #cursor = ''
+  if cache.get('plaid_access_token') is None:
+    return Response('Missing Plaid access token', status = 400, content_type = 'application/json')
+
   if cache.get('cursor') is None:
     cursor = ''
   else:
@@ -108,10 +111,14 @@ def transaction_sync():
     # Update cursor to the next cursor
     cursor = response['next_cursor']
 
-  # Add item into mongodb collection
-  transactions = convert_arbitrary_type_to_dict(added)
-  mongo.db.transactions.insert_many(transactions)
+  try:
+    # Add item into mongodb collection
+    transactions = convert_arbitrary_type_to_dict(added)
+    mongo.db[config.TRANSACTIONS_COLLECTION].insert_many(transactions)
+  except Exception as e:
+    json_string = { 'error': f'Error adding into transactions collection: {str(e)}' }
+    return Response(json_string, status = 500, content_type = 'application/json')
 
   cache.set('cursor', cursor, timeout = 5)
-  json_string = json.dumps(response.to_dict(), default=str)
-  return json_string
+  json_string = json.dumps(response.to_dict(), default = str)
+  return Response(json_string, status = 200, content_type = 'application/json')

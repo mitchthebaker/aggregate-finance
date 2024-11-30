@@ -1,4 +1,5 @@
 from flask_pymongo import PyMongo
+import config
 
 mongo = PyMongo()
 
