@@ -1,1 +1,1 @@
-from .helpers import convert_dates_to_strings, convert_arbitrary_type_to_dict
+from .helpers import convert_dates_to_strings, convert_arbitrary_type_to_dict, assign_document_id

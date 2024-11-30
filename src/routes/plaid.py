@@ -6,7 +6,7 @@ from plaid.model.products import Products
 from flask import Blueprint, request, jsonify, abort
 from cache import cache
 from database import mongo
-from database.utils import convert_arbitrary_type_to_dict
+from database.utils import convert_arbitrary_type_to_dict, assign_document_id
 
 import plaid
 import json
@@ -123,6 +123,7 @@ def transaction_sync():
   try:
     # Add item into mongodb collection
     transactions = convert_arbitrary_type_to_dict(added)
+    assign_document_id(transactions, 'transaction_id')
     mongo.db[config.TRANSACTIONS_COLLECTION].insert_many(transactions)
   except Exception as e:
     abort(500, { 'error': f'Error adding into transactions collection: {str(e)}' })

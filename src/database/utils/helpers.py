@@ -20,3 +20,7 @@ def convert_arbitrary_type_to_dict(a_list):
     a_dict['_id'] = a_dict['transaction_id']
     convert_dates_to_strings(a_dict)
   return dictionaries
+
+def assign_document_id(a_list, id_name):
+  for a_dict in a_list:
+    a_dict['_id'] = a_dict[id_name]
