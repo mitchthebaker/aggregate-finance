@@ -3,7 +3,7 @@ from plaid.model.sandbox_public_token_create_request import SandboxPublicTokenCr
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, jsonify, abort
 from cache import cache
 from database import mongo
 from database.utils import convert_arbitrary_type_to_dict
@@ -50,14 +50,12 @@ def access_token(institution_id):
   body = request.get_json()
   initial_products = body.get('initial_products')
   if not initial_products or not isinstance(initial_products, list):
-    json_string = { 'error': 'initial_products is required and must be a non-empty list' }
-    return Response(json_string, status = 400, content_type = 'application/json')
+    return jsonify({ 'error': 'initial_products is required and must be a non-empty list' }), 400
   
   try:
     products_list = [Products(product) for product in initial_products]
   except Exception as e:
-    json_string = { 'error': f'Error creating Products objects: {str(e)}' }
-    return Response(json_string, status = 400, content_type = 'application/json')
+    return jsonify({ 'error': f'Error creating Products objects: {str(e)}' }), 400
 
   pt_request = SandboxPublicTokenCreateRequest(
     institution_id = institution_id,
@@ -71,12 +69,23 @@ def access_token(institution_id):
 
   cache.set('plaid_access_token', exchange_response.access_token)
   json_string = json.dumps(exchange_response.to_dict(), default = str)
-  return Response(json_string, status = 200, content_type = 'application/json')
+  return jsonify(json_string), 200
+  
 
 @plaid_blueprint.route('/transaction_sync', methods=['POST'])
 def transaction_sync():
+  '''Retrieve transactions corresponding to an access token for a specific institution id
+    ---
+    responses:
+      200:
+        description: JSON payload with added, modified, removed, accounts
+      400:
+        description: Missing Plaid access token
+      500:
+        description: Error adding into transactions collection
+  '''
   if cache.get('plaid_access_token') is None:
-    return Response('Missing Plaid access token', status = 400, content_type = 'application/json')
+    return jsonify({ 'error': 'Missing Plaid access token' }), 400
 
   if cache.get('cursor') is None:
     cursor = ''
@@ -116,9 +125,8 @@ def transaction_sync():
     transactions = convert_arbitrary_type_to_dict(added)
     mongo.db[config.TRANSACTIONS_COLLECTION].insert_many(transactions)
   except Exception as e:
-    json_string = { 'error': f'Error adding into transactions collection: {str(e)}' }
-    return Response(json_string, status = 500, content_type = 'application/json')
+    abort(500, { 'error': f'Error adding into transactions collection: {str(e)}' })
 
   cache.set('cursor', cursor, timeout = 5)
   json_string = json.dumps(response.to_dict(), default = str)
-  return Response(json_string, status = 200, content_type = 'application/json')
+  return jsonify(json_string), 200
