@@ -1,0 +1,19 @@
+{
+  "name": "aggregate-finance",
+  "version": "1.0.0",
+  "main": "function.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitchthebaker/aggregate-finance.git"
+  },
+  "author": "Mitchel Baker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mitchthebaker/aggregate-finance/issues"
+  },
+  "homepage": "https://github.com/mitchthebaker/aggregate-finance#readme",
+  "description": ""
+}
