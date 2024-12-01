@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
-from flasgger import Swagger
+from flasgger import Swagger, swag_from
 from routes import plaid_blueprint
 from cache import initialize_cache
 from database import initialize_database
+from swagger import templates
 
 import config
 import json
@@ -21,13 +22,8 @@ server.config["MONGO_URI"] = config.MONGO_URI
 initialize_database(server)
 
 @server.route('/', methods=['GET'])
+@swag_from(templates)
 def get_root():
-  """Root endpoint
-    ---
-    responses:
-      200:
-        description: An object displaying the hostname and port
-  """
   result = { 'host': config.HOST, 'port': config.PORT }
   return jsonify(result)
 

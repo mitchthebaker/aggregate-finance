@@ -17,7 +17,6 @@ def convert_dates_to_strings(a_dict):
 def convert_arbitrary_type_to_dict(a_list):
   dictionaries = [dictionary.to_dict() for dictionary in a_list]
   for a_dict in dictionaries:
-    a_dict['_id'] = a_dict['transaction_id']
     convert_dates_to_strings(a_dict)
   return dictionaries
 

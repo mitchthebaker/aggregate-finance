@@ -4,9 +4,11 @@ from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchan
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from plaid.model.products import Products
 from flask import Blueprint, request, jsonify, abort
+from flasgger import swag_from
 from cache import cache
 from database import mongo
 from database.utils import convert_arbitrary_type_to_dict, assign_document_id
+from swagger import templates
 
 import plaid
 import json
@@ -24,29 +26,9 @@ configuration = plaid.Configuration(
 api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
-@plaid_blueprint.route('/access_token/<institution_id>', methods=['POST'])
+@plaid_blueprint.route('/access-token/<institution_id>', methods = ['POST'])
+@swag_from(templates)
 def access_token(institution_id):
-  '''Retrieve a new access token from the Plaid API
-    ---
-    parameters:
-      - name: institution_id
-        description: The ID of the institution the Item will be associated with
-        in: path
-        type: string
-        required: true
-      - name: initial_products
-        description: The products to initially pull for the Item. May be any products that the specified institution_id  supports.
-        in: body
-        items:
-          type: string
-        type: array
-        required: true
-    responses:
-      200:
-        description: JSON payload with access_token, item_id, and request_id
-      400:
-        description: initial_products is required and must be a non-empty list
-  '''
   body = request.get_json()
   initial_products = body.get('initial_products')
   if not initial_products or not isinstance(initial_products, list):
@@ -72,18 +54,9 @@ def access_token(institution_id):
   return jsonify(json_string), 200
   
 
-@plaid_blueprint.route('/transaction_sync', methods=['POST'])
+@plaid_blueprint.route('/transaction-sync', methods = ['GET'])
+@swag_from(templates)
 def transaction_sync():
-  '''Retrieve transactions corresponding to an access token for a specific institution id
-    ---
-    responses:
-      200:
-        description: JSON payload with added, modified, removed, accounts
-      400:
-        description: Missing Plaid access token
-      500:
-        description: Error adding into transactions collection
-  '''
   if cache.get('plaid_access_token') is None:
     return jsonify({ 'error': 'Missing Plaid access token' }), 400
 
@@ -122,9 +95,10 @@ def transaction_sync():
 
   try:
     # Add item into mongodb collection
+    collection = mongo.db[config.TRANSACTIONS_COLLECTION]
     transactions = convert_arbitrary_type_to_dict(added)
     assign_document_id(transactions, 'transaction_id')
-    mongo.db[config.TRANSACTIONS_COLLECTION].insert_many(transactions)
+    collection.insert_many(transactions)
   except Exception as e:
     abort(500, { 'error': f'Error adding into transactions collection: {str(e)}' })
 

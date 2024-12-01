@@ -32,10 +32,10 @@ docker volume ls
 docker volume inspect mongo_data
 ```
 
-### View swagger API documentation:
+### View swagger API documentation
 http://0.0.0.0:3101/apidocs/
 
-### View MongoDB Express admin interface:
+### View MongoDB Express admin interface
 http://0.0.0.0:8081/
 
 By default, the MongoDB Express URI is: mongodb://admin:pass@localhost:27017/db?ssl=false.
