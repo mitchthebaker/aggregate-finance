@@ -5,20 +5,24 @@ from swagger import templates
 
 database_blueprint = Blueprint('db', __name__)
 
-@db.route('/collections', method = ['GET'])
+@database_blueprint.route('/collections', methods = ['GET'])
 @swag_from(templates)
 def collections():
   try:
-        collections = mongo.db.list_collection_names()
-        return jsonify({"collections": collections}), 200
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    collections = mongo.db.list_collection_names()
+    return jsonify({"collections": collections}), 200
+  except Exception as e:
+    return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
-@db.route('/collections/<collection_name>', method = ['GET'])
+@database_blueprint.route('/collections/<collection_name>', methods = ['GET'])
 @swag_from(templates)
 def collection(collection_name):
   try:
-        collections = mongo.db.list_collection_names()
-        return jsonify({"collections": collections}), 200
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    collection = mongo.db[collection_name]
+    if collection is None:
+      return jsonify({ 'error': 'collection_name is required and must be a valid collection name' }), 400
+
+    documents = list(collection.find())
+    return jsonify({ 'documents': documents }), 200
+  except Exception as e:
+    return jsonify({"error": f"An error occurred: {str(e)}"}), 500

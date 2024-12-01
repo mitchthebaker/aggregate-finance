@@ -1,4 +1,5 @@
-{
+templates = {
+  "swagger": "2.0",
   "paths": {
     "/": {
       "get": {
@@ -19,7 +20,7 @@
             "name": "institution_id",
             "in": "path",
             "description": "The ID of the institution the Item will be associated with.",
-            "required": true,
+            "required": True,
             "schema": {
               "type": "string"
             }
@@ -27,7 +28,7 @@
         ],
         "requestBody": {
           "description": "The products to initially pull for the Item. May be any products that the specified institution_id supports.",
-          "required": true,
+          "required": True,
           "content": {
             "application/json": {
               "schema": {
@@ -236,7 +237,7 @@
           {
             "in": "path",
             "name": "collection_name",
-            "required": true,
+            "required": True,
             "description": "The name of the MongoDB collection to query.",
             "schema": {
               "type": "string"
