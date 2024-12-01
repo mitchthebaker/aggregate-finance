@@ -1,17 +1,17 @@
 services:
-  flask-app:
+  flask-api:
     image: python:3.13
-    container_name: flask_app
+    container_name: flask_api
     build:
-      context: ./src
+      context: ./flask-api
     env_file:
-      - ./src/.env
+      - ./flask-api/.env
     depends_on:
       - redis
     ports:
       - "3101:3101"
     volumes:
-      - ./src/:/opt/app
+      - ./flask-api/:/opt/app
 
   redis: 
     image: redis:7.2
