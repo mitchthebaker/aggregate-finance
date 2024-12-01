@@ -1,28 +1,12 @@
 ## finance-aggregator
+The idea here is to pull from various APIs (Bank of America, American Express, etc) to gather various payment details, which can then be auto populated into a spreadsheet for easier personal finance management.
 
-*old setup prior to configuring project with docker*
-### Setup virtualenv and install dependencies
-
-```
-pip3 install virtualenv
-virtualenv .venv
-source .venv/bin/activate
-pip3 install -r requirements.txt
-```
-
-### Run development server
-
-```
-python3 src/server.py
-```
-
-*new setup*
 ### Build/run via docker compose
 ```
 # build containers
 docker compose up --build
 
-# simply run if containers are already built
+# or run if containers are already built
 docker compose up
 ```
 
