@@ -1,4 +1,4 @@
-## finance-aggregator
+## aggregate-finance
 The idea here is to pull from various APIs (Bank of America, American Express, etc) to gather various payment details, which can then be auto populated into a spreadsheet for easier personal finance management.
 
 ### Build/run via docker compose
