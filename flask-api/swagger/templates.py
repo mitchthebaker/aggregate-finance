@@ -292,6 +292,66 @@ templates = {
           }
         }
       }
+    },
+    "/google-api/spreadsheet/{spreadsheet_id}": {
+      "get": {
+        "tags": ["Google API"],
+        "summary": "Get a Google spreadsheet by ID",
+        "description": "Get a Google spreadsheet by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spreadsheet_id",
+            "required": True,
+            "description": "The spreadsheet ID (can be found in url)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved all documents.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "description": "A single document from the collection."
+                  }
+                },
+                "example": [
+                  {
+                    "_id": "64a6b7c1e25b3456abcd1234",
+                    "field1": "value1",
+                    "field2": "value2"
+                  },
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Details of the server error."
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Failed to retrieve documents from the collection."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

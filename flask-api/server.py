@@ -1,6 +1,10 @@
 from flask import Flask, jsonify, request
 from flasgger import Swagger, swag_from
-from routes import plaid_blueprint, database_blueprint
+from routes import (
+  plaid_blueprint,
+  database_blueprint,
+  google_api_blueprint
+)
 from cache import initialize_cache
 from database import initialize_database
 from swagger import templates
@@ -12,6 +16,7 @@ server = Flask(__name__)
 server.debug = config.DEBUG
 server.register_blueprint(plaid_blueprint, url_prefix = '/plaid')
 server.register_blueprint(database_blueprint, url_prefix = '/db')
+server.register_blueprint(google_api_blueprint, url_prefix = '/google-api')
 swagger = Swagger(server)
 
 server.config['CACHE_TYPE'] = 'RedisCache'
