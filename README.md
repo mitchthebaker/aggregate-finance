@@ -33,3 +33,5 @@ https://developers.google.com/workspace/guides/create-project
 https://support.google.com/a/answer/7378726?hl=en
 
 After you've created a service account, download the service account's private key JSON file to the /flask-api directory in this project locally.
+
+For the spreadsheet you're querying you'll have to share access with the service account client email.
